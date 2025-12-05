@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "StoxyApp",
+  label: "StoxyApp",
   description: "Track stock prices, get personalized alerts and explore detailed company insights in real time.",
-};
+} as Metadata;
 
 export default function RootLayout({
   children,
