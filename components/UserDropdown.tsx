@@ -14,15 +14,17 @@ import {Button} from "@/components/ui/button";
 import {LogOut} from "lucide-react";
 import {NAV_ITEMS} from "@/lib/constants";
 import NavItems from "@/components/NavItems";
+import {signOut} from "better-auth/api";
 
-const UserDropdown = () => {
+const UserDropdown = ({user}:{user: User}) => {
     const router = useRouter();
 
     const handleSignOut = async() => {
+        await signOut();
         router.push("/signin");
     }
 
-    const user= {name: 'john', email: 'okokok@gmail.com'};
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
