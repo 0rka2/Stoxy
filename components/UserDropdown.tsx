@@ -12,16 +12,15 @@ import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import {useRouter} from "next/navigation";
 import {Button} from "@/components/ui/button";
 import {LogOut} from "lucide-react";
-import {NAV_ITEMS} from "@/lib/constants";
 import NavItems from "@/components/NavItems";
-import {signOut} from "better-auth/api";
+import {signOut} from "@/lib/actions/auth.actions";
 
 const UserDropdown = ({user}:{user: User}) => {
     const router = useRouter();
 
     const handleSignOut = async() => {
         await signOut();
-        router.push("/signin");
+        router.push("/sign-in");
     }
 
 
@@ -53,7 +52,7 @@ const UserDropdown = ({user}:{user: User}) => {
                             </AvatarFallback>
                         </Avatar>
                         <div className="flex flex-col">
-                        <span className='text-base font-medium' text-gray-400>
+                        <span className='text-base font-medium text-gray-400'>
                             {user.name}
                         </span>
                             <span className="text-sm text-gray-500 ">{user.email}</span>
