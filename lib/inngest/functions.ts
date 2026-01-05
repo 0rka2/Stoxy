@@ -1,6 +1,7 @@
 import {inngest} from "@/lib/inngest/client";
 import {PERSONALIZED_WELCOME_EMAIL_PROMPT} from "@/lib/inngest/prompts";
 import {sendWelcomeEmail} from "@/lib/nodemailer";
+import {getAllUsersForNewsEmail} from "@/lib/actions/user.actions";
 
 export const sendSignUpEmail = inngest.createFunction(
     { id: 'sign-up-email' },
@@ -45,3 +46,35 @@ export const sendSignUpEmail = inngest.createFunction(
         }
     }
 )
+
+export const sendDailyNewsSummary = inngest.createFunction(
+    { id: 'daily-news-summary' },
+    [ { event: 'app/send.daily.news' }, { cron: '0 12 * * *' } ],
+    async ({ step }) => {
+        // Step #1: Get all users for news delivery
+        const users = await step.run('get-all-users', getAllUsersForNewsEmail)
+
+        if(!users || users.length === 0) return { success: false, message: 'No users found for news email' };
+
+        // Step #2: For each user, get watchlist symbols -> fetch news (fallback to general)
+        const results = await step.run('fetch-user-news', async () => {
+            const perUser: Array<{ user: UserForNewsEmail; articles: MarketNewsArticle[] }> = [];
+            for (const user of users as UserForNewsEmail[]) {
+                try {
+                    const symbols = await getWatchlistSymbolsByEmail(user.email);
+                    let articles = await getNews(symbols);
+                    // Enforce max 6 articles per user
+                    articles = (articles || []).slice(0, 6);
+                    // If still empty, fallback to general
+                    if (!articles || articles.length === 0) {
+                        articles = await getNews();
+                        articles = (articles || []).slice(0, 6);
+                    }
+                    perUser.push({ user, articles });
+                } catch (e) {
+                    console.error('daily-news: error preparing user news', user.email, e);
+                    perUser.push({ user, articles: [] });
+                }
+            }
+            return perUser;
+        });
