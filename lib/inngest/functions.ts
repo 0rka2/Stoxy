@@ -119,3 +119,49 @@ export const sendDailyNewsSummary = inngest.createFunction(
         return { success: true, message: 'Daily news summary emails sent successfully' }
     }
 )
+
+//test
+export const sendNewsUser = inngest.createFunction(
+    { id: 'news-summary-user' },
+    [{ event: 'app/send.news' }, { cron: '0 12 * * *' }],
+    async ({ step }) => {
+        const email = 'wopih17526@jparksky.com';
+
+        // Step 1: Fetch NVIDIA news only
+        const articles = await step.run('fetch-nvidia-news', async () => {
+            let news = await getNews(['NVDA']);
+            return (news || []).slice(0, 6);
+        });
+
+// Step 2: AI summarize (NO step.run)
+        const aiResponse = await step.ai.infer('summarize-nvda', {
+            model: step.ai.models.gemini({ model: 'gemini-2.5-flash-lite' }),
+            body: {
+                contents: [
+                    {
+                        role: 'user',
+                        parts: [{ text: NEWS_SUMMARY_EMAIL_PROMPT.replace('{{newsData}}', JSON.stringify(articles, null, 2)) }]
+                    }
+                ]
+            }
+        });
+
+        const part = aiResponse.candidates?.[0]?.content?.parts?.[0];
+        const newsContent =
+            (part && 'text' in part ? part.text : null) || 'No NVIDIA market news.';
+
+// Step 3: Send email
+        await step.run('send-nvidia-news-email', async () => {
+            return await sendNewsSummaryEmail({
+                email,
+                date: getFormattedTodayDate(),
+                newsContent
+            });
+        });
+
+        return {
+            success: true,
+            message: `NVIDIA news summary sent to ${email}`
+        };
+    }
+);

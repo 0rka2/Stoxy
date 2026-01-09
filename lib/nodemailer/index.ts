@@ -15,7 +15,7 @@ export const sendWelcomeEmail = async ({ email, name, intro }: WelcomeEmailData)
         .replace('{{intro}}', intro);
 
     const mailOptions = {
-        from: `"Stoxy" <stoxy@app.pro>`,
+        from: `"Stoxy" stoxy@app.pro>`,
         to: email,
         subject: `Welcome to Stoxy - your stock market toolkit is ready!`,
         text: 'Thanks for joining Stoxy',
@@ -33,7 +33,7 @@ export const sendNewsSummaryEmail = async (
         .replace('{{newsContent}}', newsContent);
 
     const mailOptions = {
-        from: `"Stoxy News" <stoxy@jsmastery.pro>`,
+        from: `"Stoxy News" stoxy@jsmastery.pro>`,
         to: email,
         subject: `📈 Market News Summary Today - ${date}`,
         text: `Today's market news summary from Stoxy`,
